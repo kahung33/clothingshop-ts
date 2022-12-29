@@ -1,12 +1,28 @@
 import { compose, createStore, applyMiddleware} from 'redux';
+import { persistStore, persistReducer } from 'redux-persist';
+import storage from 'redux-persist/lib/storage';
 import logger from 'redux-logger';
+// import thunk from 'redux-thunk';
+import {}
 
 import { rootReducer } from './root-reducer';
 
-//root-reducer
 
-const middileWares = [logger];
 
-const composedEnhancer = compose(applyMiddleware(...middleWares));
+const persistConfig = {
+    key: 'root', //persist the whole thing
+    storage, //default using local storage in the browser
+    whitelist: ['cart'],
+}
 
-export const store = createStore(rootReducer, undefined, composedEnhancer);
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+
+const middleWares = [process.env.NODE_ENV !== 'production' && logger, thunk].filter(Boolean);
+
+const composedEnhancer = (process.env.NODE_ENV !== 'production' && window && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose)
+
+const composedEnhancers = composedEnhancer(applyMiddleware(...middleWares));
+
+export const store = createStore(persistedReducer, undefined, composedEnhancers);
+
+export const persistor =  persistStore(store);
