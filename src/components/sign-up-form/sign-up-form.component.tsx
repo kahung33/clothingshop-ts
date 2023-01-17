@@ -1,14 +1,12 @@
-import { useState } from 'react';
+import { useState, FormEvent, ChangeEvent } from 'react';
+import { AuthError, AuthErrorCodes } from 'firebase/auth';
 import { useDispatch } from 'react-redux';
 
 import FormInput from '../form-input/form-input.component';
 import Button from '../button/button.component';
 
-import { createAuthUserWithEmailAndPassword, createUserDocumentFromAuth } from '../../utils/firebase/firebase.utils';
-
-import './sign-up-form.styles.scss'
 import { signUpStart } from '../../store/user/user.action';
-
+import { SignUpContainer } from './sign-up-form.styles.jsx';
 
 const defaultformFields = {
     displayName: '',
@@ -28,7 +26,7 @@ const SignUpForm = () => {
         setFormFields(defaultformFields);
     }
 
-    const handleSubmit = async (event) => {
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if(formFields.password !== formFields.confirmPassword) {
             alert("passwords do not match");
@@ -39,7 +37,7 @@ const SignUpForm = () => {
             dispatch(signUpStart(email, password, displayName));
             resetFormFields();
         }catch(error){
-            if(error.code === 'auth/email-already-in-use') {
+            if((error as AuthError).code === AuthErrorCodes.EMAIL_EXISTS) {
                 alert('Cannot creat user, email already us use');
             }else{
                 console.log('user creation encountered an error', error);
@@ -47,14 +45,14 @@ const SignUpForm = () => {
         }
     }
 
-    const handleChange = (event) => {
+    const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
         const {name, value} = event.target;
 
         setFormFields({...formFields, [name]: value});
     };
 
     return (
-        <div className='sign-up-container'>
+        <SignUpContainer>
             <h2>Don't have an account</h2>
             <span>Sign up with your email and password</span>
             <form onSubmit={handleSubmit}>
@@ -92,7 +90,7 @@ const SignUpForm = () => {
 
                 <Button type="submit">Sign Up</Button>
             </form>
-        </div>
+        </SignUpContainer>
     )
 }
 
